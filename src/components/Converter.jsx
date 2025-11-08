@@ -36,12 +36,18 @@ const Converter = () => {
   const fileInputRef = useRef(null);
   const synth = window.speechSynthesis;
 
-  // *** IMPORTANT ***
-  // You will get this URL from Railway AFTER you deploy
+  // --- THIS IS THE UPDATED PART ---
+  // The dynamic `import.meta.env.DEV` is not supported in all build environments.
+  // We will set the URL directly to your live Railway server.
+  
+  // To test on your local computer, comment out the line below:
   const BACKEND_URL = "https://text-to-speech-app-production.up.railway.app";
   
+  // ...and uncomment this line:
+  // const BACKEND_URL = "http://localhost:3001";
+  // --- END UPDATED PART ---
+
   const loadVoices = useCallback(() => {
-    // ... (same as before) ...
     if (!synth) {
       setApiError(true);
       setStatusText('Speech API not supported');
@@ -56,17 +62,16 @@ const Converter = () => {
     }
   }, [synth]);
   
-  // --- NEW FUNCTION to fetch history ---
   const fetchHistory = useCallback(async () => {
     setIsLoadingHistory(true);
     try {
+      // We use the BACKEND_URL variable here
       const response = await fetch(`${BACKEND_URL}/api/history`);
       if (!response.ok) throw new Error('Failed to fetch history');
       const data = await response.json();
       setHistory(data);
     } catch (error) {
       console.error("Failed to fetch history:", error);
-      // Don't show an aggressive alert, just log it
     } finally {
       setIsLoadingHistory(false);
     }
@@ -77,12 +82,10 @@ const Converter = () => {
     if (synth && synth.onvoiceschanged !== undefined) {
       synth.onvoiceschanged = loadVoices;
     }
-    // Fetch history when component mounts
     fetchHistory();
   }, [synth, loadVoices, fetchHistory]); // Add fetchHistory
 
   const handleFileChange = (event) => {
-    // ... (same as before) ...
     const file = event.target.files[0];
     if (!file) return;
 
@@ -108,10 +111,9 @@ const Converter = () => {
   };
 
   const handleSpeak = () => {
-    // ... (same as before) ...
     if (apiError || !synth || !text.trim() || synth.speaking) return;
     synth.cancel();
-    setBackendMessage(''); // Clear backend message
+    setBackendMessage(''); 
 
     const newUtterance = new SpeechSynthesisUtterance(text);
     utteranceRef.current = newUtterance;
@@ -153,16 +155,16 @@ const Converter = () => {
     synth.speak(newUtterance);
   };
 
-  // --- UPDATED to fetch history on success ---
   const handlePremiumSpeak = async () => {
     if (!text.trim() || isBackendLoading || isSpeaking) return;
 
     setIsBackendLoading(true);
     setBackendMessage('');
     setStatusText('Connecting to backend...');
-    synth.cancel(); // Stop browser speech
+    synth.cancel(); 
 
     try {
+      // We use the BACKEND_URL variable here
       const response = await fetch(`${BACKEND_URL}/api/premium-speak`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -183,7 +185,6 @@ const Converter = () => {
       setStatusText('Backend request successful');
       setBackendMessage(data.message);
       
-      // --- NEW: Refresh history list ---
       fetchHistory(); 
       
     } catch (error) {
@@ -213,8 +214,8 @@ const Converter = () => {
     }
   };
 
+IS_SANDBOX = true;
   const attemptAudioGeneration = () => {
-    // ... (same as before) ...
     try {
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
@@ -244,7 +245,6 @@ const Converter = () => {
   };
 
   const handleDownload = () => {
-    // ... (same as before) ...
     if (!audioBlob) return;
     const url = URL.createObjectURL(audioBlob);
     const a = document.createElement('a');
@@ -273,7 +273,6 @@ const Converter = () => {
   };
   
   if (apiError) {
-    // ... (same as before) ...
     return (
       <section id="converter" className="py-16 bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -292,7 +291,6 @@ const Converter = () => {
   }
 
   return (
-    // --- WRAP IN A FRAGMENT ---
     <>
       <section id="converter" className="py-16 bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -386,7 +384,6 @@ const Converter = () => {
                 >
                   <Play className="w-5 h-5" /> Speak
                 </button>
-                {/* --- UPDATED PREMIUM BUTTON --- */}
                 <button
                   onClick={handlePremiumSpeak}
                   disabled={!text.trim() || isSpeaking || isBackendLoading}
@@ -427,7 +424,6 @@ const Converter = () => {
                 </button>
             </div>
             
-            {/* --- NEW MESSAGE DISPLAY --- */}
             {backendMessage && (
               <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-green-700 font-medium">{backendMessage}</p>
@@ -451,7 +447,6 @@ const Converter = () => {
         </div>
       </section>
 
-      {/* --- NEW HISTORY SECTION --- */}
       <section id="history" className="pb-24 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 mb-6">
