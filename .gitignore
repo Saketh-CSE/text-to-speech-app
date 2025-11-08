@@ -1,1 +1,40 @@
-node_modules
+--- Security ---
+
+Ignore environment files, which contain secret keys.
+
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+--- Dependencies ---
+
+Ignore the massive folder of installed packages.
+
+/node_modules
+
+--- Build Output ---
+
+Ignore the folder that gets created when you build your frontend.
+
+/dist
+
+--- Logs ---
+
+Ignore npm log files.
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+--- Operating System ---
+
+Ignore macOS system files.
+
+.DS_Store
+
+Ignore Windows system files.
+
+Thumbs.db
