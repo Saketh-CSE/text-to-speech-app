@@ -36,14 +36,13 @@ const Converter = () => {
   const fileInputRef = useRef(null);
   const synth = window.speechSynthesis;
 
-  // --- THIS IS THE UPDATED PART ---
-  // The dynamic `import.meta.env.DEV` is not supported in all build environments.
-  // We will set the URL directly to your live Railway server.
-  
-  // To test on your local computer, comment out the line below:
+  // --- THIS IS THE FINAL, CORRECTED URL ---
+  // This now points to your live Railway backend.
   const BACKEND_URL = "https://text-to-speech-app-production.up.railway.app";
   
-  // ...and uncomment this line:
+  // To test on your local computer, you would need to:
+  // 1. Comment out the line above.
+  // 2. Uncomment the line below.
   // const BACKEND_URL = "http://localhost:3001";
   // --- END UPDATED PART ---
 
@@ -214,7 +213,6 @@ const Converter = () => {
     }
   };
 
-IS_SANDBOX = true;
   const attemptAudioGeneration = () => {
     try {
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
