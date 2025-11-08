@@ -30,6 +30,7 @@ const Converter = () => {
   const [backendMessage, setBackendMessage] = useState('');
   const [history, setHistory] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [historyError, setHistoryError] = useState(null); // New state to track history fetch errors
   // --- END NEW ---
 
   const utteranceRef = useRef(null);
@@ -63,6 +64,7 @@ const Converter = () => {
   
   const fetchHistory = useCallback(async () => {
     setIsLoadingHistory(true);
+    setHistoryError(null); // Reset error on fetch
     try {
       // We use the BACKEND_URL variable here
       const response = await fetch(`${BACKEND_URL}/api/history`);
@@ -71,6 +73,7 @@ const Converter = () => {
       setHistory(data);
     } catch (error) {
       console.error("Failed to fetch history:", error);
+      setHistoryError('Could not load history. Server may be offline or unreachable.'); // Set user-friendly error
     } finally {
       setIsLoadingHistory(false);
     }
@@ -460,6 +463,8 @@ const Converter = () => {
                   <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
                   <p className="ml-3 text-gray-500">Loading history...</p>
                 </div>
+              ) : historyError ? ( 
+                <p className="text-center text-red-500 font-medium">{historyError}</p>
               ) : history.length === 0 ? (
                 <p className="text-center text-gray-500">
                   No premium requests have been made yet.
