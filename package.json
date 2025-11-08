@@ -1,6 +1,6 @@
 {
-  "homepage": "https://Saketh-CSE.github.io/Text-To-Speech",
-  "name": "my-voice-app",
+ "homepage": "https://Saketh-CSE.github.io/text-to-speech-app",
+  "name": "text-to-speech-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",

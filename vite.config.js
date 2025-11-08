@@ -4,5 +4,7 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: "/my-voice-app/",
+  // *** THIS IS THE FIX ***
+  // It must match your repository name: "Text-To-Speech"
+  base: "/text-to-speech-app/", 
 })
