@@ -1,42 +1,97 @@
-const express = require('express');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
+import 'dotenv/config'; // Import dotenv to read .env file
+import { connectToDb } from './db.js'; // Import our DB connection
+
+// *** IMPORTANT ***
+// This now matches your package.json homepage
+const GITHUB_PAGES_URL = `https://Saketh-CSE.github.io/text-to-speech-app`; 
+
+const corsOptions = {
+  origin: [GITHUB_PAGES_URL, "http://localhost:5173"], // Allow your local dev and GitHub Pages
+};
 
 // Create our server
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001; // Use Railway's port or 3001
 
 // Setup middleware
-app.use(cors()); // Allow requests from our frontend
+app.use(cors(corsOptions)); // Use our specific CORS options
 app.use(express.json()); // Allow server to read JSON
 
-// This is our main API endpoint
-app.post('/api/premium-speak', (req, res) => {
-  // 1. Get the data from the React frontend
-  const { text, voice, rate, pitch } = req.body;
+// --- API ROUTES ---
 
-  console.log('[BACKEND] Received request for premium voice.');
-  console.log('[BACKEND] Text:', text);
-  console.log('[BACKEND] Voice:', voice);
+// UPDATE this route to be async and save to DB
+app.post('/api/premium-speak', async (req, res) => {
+  try {
+    const { text, voice, rate, pitch } = req.body;
+    console.log('[BACKEND] Received request from:', req.headers.origin);
+    console.log('[BACKEND] Text:', text);
 
-  // --- SIMULATION ---
-  // In a real app, this is where you would send this data to a
-  // paid service like Google Cloud Text-to-Speech or Amazon Polly
-  // to generate a real audio file.
-  
-  // We'll simulate a 1.5 second delay
-  console.log('[BACKEND] Simulating AI voice generation...');
-  setTimeout(() => {
-    console.log('[BACKEND] Simulation complete. Sending (fake) URL back.');
+    // Get the database connection
+    const db = await connectToDb();
+    const historyCollection = db.collection("history");
+
+    // Create a new document
+    const newRequest = {
+      text,
+      voice,
+      rate,
+      pitch,
+      createdAt: new Date(),
+    };
+
+    // Save the document to the database
+    const result = await historyCollection.insertOne(newRequest);
+    console.log('[MONGODB] Saved request with id:', result.insertedId);
+
+    // ... (Simulation code is the same) ...
+    console.log('[BACKEND] Simulating AI voice generation...');
+    setTimeout(() => {
+      console.log('[BACKEND] Simulation complete.');
+      res.json({
+        message: "Premium audio generated and request saved!",
+        audioUrl: "https://storage.googleapis.com/audio-samples/fake-audio.mp3",
+        savedId: result.insertedId
+      });
+    }, 1500);
+
+  } catch (err) {
+    console.error("Error in /api/premium-speak:", err);
+    res.status(500).json({ message: "Error processing request", error: err.message });
+  }
+});
+
+// ADD this new route to get history
+app.get('/api/history', async (req, res) => {
+  try {
+    const db = await connectToDb();
+    const historyCollection = db.collection("history");
     
-    // 2. Send a response back to React
-    res.json({
-      message: "Premium audio generated! (Simulated)",
-      audioUrl: "https://storage.googleapis.com/audio-samples/fake-audio.mp3"
-    });
-  }, 1500);
+    // Find all documents, sort by newest first, limit to 20
+    const history = await historyCollection.find({})
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .toArray();
+      
+    res.json(history);
+  } catch (err) {
+    console.error("Error in /api/history:", err);
+    res.status(500).json({ message: "Error fetching history", error: err.message });
+  }
 });
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`[BACKEND] Server is running on http://localhost:${PORT}`);
-});
+
+// Start the server (wrapped in a function to connect to DB first)
+async function startServer() {
+  try {
+    await connectToDb(); // Ensure DB is connected before starting server
+    app.listen(PORT, () => {
+      console.log(`[BACKEND] Server is running on port: ${PORT}`);
+    });
+  } catch (err) {
+    console.error("Failed to start server:", err);
+  }
+}
+
+startServer();
